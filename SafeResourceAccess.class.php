@@ -9,12 +9,13 @@ class SafeResourceAccess {
 
   private $_WLock;
   private $_RLock;
-  private $publisher;
 
-  var $file; // string id
-  var $hash_id;
-  var $hasResourceExpiredFunc;
-  var $writeContentFunc;
+  public $publisher;
+  public $file; // string id
+
+  private $hash_id;
+  private $hasResourceExpiredFunc;
+  private $writeContentFunc;
 
   function __construct ($id, $hasResourceExpiredFunc=null, $writeContentFunc=null) {
     $this->file = $id;
@@ -32,13 +33,13 @@ class SafeResourceAccess {
   function hasResourceExpired () {
     $func = $this->hasResourceExpiredFunc;
 
-    return $func ? $func($this->file, $this->publisher) : false;
+    return $func ? $func($this) : false;
   }
   // call user func or inherit this method
   function writeContent () {
     $func = $this->writeContentFunc;
 
-    return $func ? $func($this->file) : true;
+    return $func ? $func($this) : true;
   }
 
   //
