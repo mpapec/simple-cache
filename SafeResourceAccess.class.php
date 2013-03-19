@@ -14,36 +14,74 @@ class SafeResourceAccess {
   public $file; // string id
 
   private $hash_id;
-  private $hasResourceExpiredFunc;
-  private $writeContentFunc;
+  private $opt;
 
-  function __construct ($id, $hasResourceExpiredFunc=null, $writeContentFunc=null) {
+  function __construct ($id, $arg=array()) {
+
     $this->file = $id;
     $this->hash_id = md5($id);
-    $this->hasResourceExpiredFunc = $hasResourceExpiredFunc;
-    $this->writeContentFunc       = $writeContentFunc;
+
+    $this->opt = $arg + array(
+      "cacheTTL" => 3*60, // sec
+      "diffTTL" => 15,
+      "clearstatcache" => true,
+    );
 
     // mkdir recursive
-    if (! is_dir(self::$work_dir) ) mkdir(self::$work_dir, 0755, true); 
+    if (! is_dir(self::$work_dir) ) mkdir(self::$work_dir, 0755, true);
 
-    $this->_main();
   }
 
   // call user func or inherit this method
   function hasResourceExpired () {
-    $func = $this->hasResourceExpiredFunc;
+    $func = $this->opt["hasResourceExpired"];
 
-    return $func ? $func($this) : false;
+    if ($func) return $func($this);
+
+    $cacheTTL = $this->publisher ? ($this->opt["cacheTTL"] - $this->opt["diffTTL"]) : $this->opt["cacheTTL"];
+
+    if ($this->opt["clearstatcache"]) clearstatcache();
+    $filemtime = file_exists($this->file) ? filemtime($this->file) : 0;
+
+    return ($filemtime + $cacheTTL < time());
   }
   // call user func or inherit this method
   function writeContent () {
-    $func = $this->writeContentFunc;
+    $func = $this->opt["writeContent"];
 
     return $func ? $func($this) : true;
   }
 
+  // print static content
+  function output () {
+
+    $this->ready();
+    $ok = readfile($this->file) !== false;
+    $this->finish();
+
+    return $ok;
+  }
+
+  // include php file
+  function include_php () {
+
+    $this->ready();
+    include $this->file;
+    $this->finish();
+  }
+
+  // get file contents
+  function get () {
+
+    $this->ready();
+    $ret = file_get_contents($this->file);
+    $this->finish();
+
+    return $ret;
+  }
+
   //
-  function _main () {
+  function ready () {
 
     $this->publisher = $this->getExclusive();
 
