@@ -2,16 +2,16 @@
 
 require "SafeResourceAccess.class.php";
 
-// writer function
-$writeContent = function($safe) {
+// new content function
+$newContent = function($safe) {
 
-  file_put_contents($safe->file, "new content@". time());
+  return $safe->file ."=> new content@". time();
 };
 
 // prepare file for safe access
 $safe = new SafeResourceAccess("/tmp/file1.txt", array(
-  "cacheTTL"     => 1*60,          // cache expire in seconds
-  "writeContent" => $writeContent, // function to generate new content
+  "cacheTTL"   => 1*60,          // cache expire in seconds
+  "newContent" => $newContent, // function to generate new content
 ));
 
 // print content

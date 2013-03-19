@@ -46,10 +46,10 @@ class SafeResourceAccess {
     return ($filemtime + $cacheTTL < time());
   }
   // call user func or inherit this method
-  function writeContent () {
-    $func = $this->opt["writeContent"];
+  function newContent () {
+    $func = $this->opt["newContent"];
 
-    return $func ? $func($this) : true;
+    return $func ? $func($this) : "";
   }
 
   // print static content
@@ -89,9 +89,13 @@ class SafeResourceAccess {
 
       if ( $this->hasResourceExpired() ) {
         // generate new content
+        $content = $this->newContent();
+
         $this->waitForWriting();
-        $this->writeContent();
+        file_put_contents($this->file, $content);
         $this->doneWriting();
+
+        unset($content);
       }
       // do reading..
       // else { }
@@ -204,3 +208,12 @@ class SafeResourceAccess {
 
 }
 
+// dropin Cache_Lite base replacement class implementing get/save
+class Cache_Lite {
+
+  function __construct () {
+  }
+
+  function get () {
+  }
+}
