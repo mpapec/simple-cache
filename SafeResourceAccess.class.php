@@ -56,7 +56,7 @@ class SafeResourceAccess {
     $fp = fopen($this->temp_file, "wb");
     if (!$fp) return false;
 
-    $content = $func($this, $out);
+    $content = $func($this, $fp);
     if (isset($content)) fwrite($fp, $content);
 
     return fclose($fp);

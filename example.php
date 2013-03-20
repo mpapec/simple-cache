@@ -3,10 +3,17 @@
 require "SafeResourceAccess.class.php";
 
 // new content function
-$newContent = function($safe) {
+$newContent = function($safe, $out) {
 
-  return $safe->file ."=> new content@". time();
+  // new content goes to $safe->file
+
+  // direct write with fwrite for large files
+  fwrite($out, "write directly via fwrite<br/>\n");
+
+  // and/or just returning content
+  return "new content@". time();
 };
+
 
 // prepare file for safe access
 $safe = new SafeResourceAccess("/tmp/file1.txt", array(
