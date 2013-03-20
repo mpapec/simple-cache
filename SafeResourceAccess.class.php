@@ -40,7 +40,8 @@ class SafeResourceAccess {
 
     if ($func) return $func($this);
 
-    $cacheTTL = $this->publisher ? ($this->opt["cacheTTL"] - $this->opt["diffTTL"]) : $this->opt["cacheTTL"];
+    $cacheTTL = $this->opt["cacheTTL"];
+    if ($this->publisher) $cacheTTL -= $this->opt["diffTTL"];
 
     if ($this->opt["clearstatcache"]) clearstatcache();
     $filemtime = file_exists($this->file) ? filemtime($this->file) : 0;

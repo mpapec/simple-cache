@@ -5,12 +5,12 @@ require "SafeResourceAccess.class.php";
 // new content function
 $newContent = function($safe, $out) {
 
-  // new content goes to $safe->file
+  // new content goes to file: $safe->file
 
   // direct write with fwrite for large files
   // fwrite($out, "write directly via fwrite<br/>\n");
 
-  // and/or just returning content
+  // and/or just returning new content
   return "new content@". time();
 };
 
