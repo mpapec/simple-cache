@@ -8,7 +8,7 @@ $newContent = function($safe, $out) {
   // new content goes to $safe->file
 
   // direct write with fwrite for large files
-  fwrite($out, "write directly via fwrite<br/>\n");
+  // fwrite($out, "write directly via fwrite<br/>\n");
 
   // and/or just returning content
   return "new content@". time();
