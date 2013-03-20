@@ -12,6 +12,7 @@ class SafeResourceAccess {
 
   public $publisher;
   public $file; // string id
+  public $temp_file;
 
   private $hash_id;
   private $opt;
@@ -19,6 +20,7 @@ class SafeResourceAccess {
   function __construct ($id, $arg=array()) {
 
     $this->file = $id;
+    $this->temp_file = $id .".temp";
     $this->hash_id = md5($id);
 
     $this->opt = $arg + array(
@@ -49,7 +51,15 @@ class SafeResourceAccess {
   function newContent () {
     $func = $this->opt["newContent"];
 
-    return $func ? $func($this) : "";
+    if (!$func) return false;
+
+    $fp = fopen($this->temp_file, "wb");
+    if (!$fp) return false;
+
+    $content = $func($this, $out);
+    if (isset($content)) fwrite($fp, $content);
+
+    return fclose($fp);
   }
 
   // print static content
@@ -88,14 +98,12 @@ class SafeResourceAccess {
     if ($this->publisher) {
 
       if ( $this->hasResourceExpired() ) {
-        // generate new content
-        $content = $this->newContent();
+        // generate new content in $this->temp_file
+        $this->newContent();
 
         $this->waitForWriting();
-        file_put_contents($this->file, $content);
+        rename($this->temp_file, $this->file);
         $this->doneWriting();
-
-        unset($content);
       }
       // do reading..
       // else { }
@@ -107,7 +115,6 @@ class SafeResourceAccess {
       $this->waitForReading();
 
       // do reading..
-
       // $this->doneReading();
     }
   }
@@ -208,12 +215,3 @@ class SafeResourceAccess {
 
 }
 
-// dropin Cache_Lite base replacement class implementing get/save
-class Cache_Lite {
-
-  function __construct () {
-  }
-
-  function get () {
-  }
-}
