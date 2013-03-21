@@ -5,7 +5,7 @@
  */
 class SafeResourceAccess {
 
-  static $work_dir = "/tmp/safe_resource_access";
+  private $work_dir;
 
   private $_WLock;
   private $_RLock;
@@ -24,18 +24,21 @@ class SafeResourceAccess {
     $this->hash_id = md5($id);
 
     $this->opt = $arg + array(
+      "work_dir" => "/tmp/safe_resource_access",
       "cacheTTL" => 3*60, // sec
       "diffTTL" => 15,
       "clearstatcache" => true,
     );
 
+    $this->work_dir = $this->opt["work_dir"];
     // mkdir recursive
-    if (! is_dir(self::$work_dir) ) mkdir(self::$work_dir, 0755, true);
+    if (! is_dir($this->work_dir) ) mkdir($this->work_dir, 0755, true);
 
   }
 
   // call user func or inherit this method
   function hasResourceExpired () {
+
     $func = $this->opt["hasResourceExpired"];
 
     if ($func) return $func($this);
@@ -50,17 +53,24 @@ class SafeResourceAccess {
   }
   // call user func or inherit this method
   function newContent () {
+
     $func = $this->opt["newContent"];
 
     if (!$func) return false;
 
-    $fp = fopen($this->temp_file, "wb");
+    $fp = $this->get_temp_fp();
     if (!$fp) return false;
 
     $content = $func($this, $fp);
     if (isset($content)) fwrite($fp, $content);
 
     return fclose($fp);
+  }
+
+  //
+  function get_temp_fp () {
+
+    return fopen($this->temp_file, "wb");
   }
 
   // print static content
@@ -186,7 +196,7 @@ class SafeResourceAccess {
   function getWLock($block) {
     $lock = $block ? LOCK_EX : LOCK_EX|LOCK_NB;
 
-    $lfile = self::$work_dir ."/". $this->hash_id .".wlock";
+    $lfile = $this->work_dir ."/". $this->hash_id .".wlock";
 
     $fp = fopen($lfile, "wb");
     if (!$fp) return false;
@@ -202,7 +212,7 @@ class SafeResourceAccess {
   function getRLock($exclusive) {
     $lock = $exclusive ? LOCK_EX : LOCK_SH;
 
-    $lfile = self::$work_dir ."/". $this->hash_id .".rlock";
+    $lfile = $this->work_dir ."/". $this->hash_id .".rlock";
 
     $fp = fopen($lfile, "wb");
     if (!$fp) return false;
