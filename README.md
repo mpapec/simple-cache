@@ -1,5 +1,5 @@
-simple-cache
-============
+PHP Safe cache
+==============
 
 read&amp;write content in concurrent environments
 

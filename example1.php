@@ -1,6 +1,6 @@
 <?php
 
-require "SafeResourceAccess.class.php";
+require "SafeCache.class.php";
 
 //
 $newContent = function($safe) {
@@ -11,7 +11,7 @@ $newContent = function($safe) {
 
 
 // prepare file for safe access
-$safe = new SafeResourceAccess("/tmp/file1.txt", array(
+$safe = new SafeCache("/tmp/file1.txt", array(
   "cacheTTL"   => 1*60,         // cache expire in seconds
   "newContent" => $newContent, // function to generate new content
 ));

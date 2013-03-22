@@ -3,7 +3,7 @@
 /*
 
  */
-class SafeResourceAccess {
+class SafeCache {
 
   private $work_dir;
 

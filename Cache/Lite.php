@@ -1,6 +1,6 @@
 <?php
 
-require_once "SafeResourceAccess.class.php";
+require_once "SafeCache.class.php";
 
 // drop in Cache_Lite base class implementing get/save
 class Cache_Lite {
@@ -36,7 +36,7 @@ class Cache_Lite {
 
     $file = $this->opt['cacheDir'] . "cached_". md5("$id|$group");
 
-    $safe = $this->safe = new SafeResourceAccess($file, array(
+    $safe = $this->safe = new SafeCache($file, array(
       "cacheTTL" => $this->opt['lifeTime'],
       "work_dir" => $this->opt['cacheDir'] . "safe_resource_access",
     ));
@@ -113,19 +113,6 @@ class Cache_Lite {
           $this->opt['cacheDir'] = sys_get_temp_dir() . DIRECTORY_SEPARATOR;
         }
 
-    }
-
-
-    /**
-    * Return the cache last modification time
-    *
-    * BE CAREFUL : THIS METHOD IS FOR HACKING ONLY !
-    *
-    * @return int last modification time
-    */
-    function lastModified()
-    {
-        return @filemtime($this->safe->file);
     }
 
 }
