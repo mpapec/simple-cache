@@ -20,7 +20,7 @@ read and write to a single file?
 
 TODO
 ====
-- ~~write Cache Lite drop in replacement~~
+- ~~write Cache Lite drop in replacement with examples~~
 - finding alternative to flock() for shared and exclusive locks
 - not tested under win32
 

@@ -5,7 +5,6 @@ require_once "SafeResourceAccess.class.php";
 // drop in Cache_Lite base class implementing get/save
 class Cache_Lite {
 
-  private $canSave = false;
   public $fp_out;
   private $safe;
   private $opt;
@@ -13,22 +12,22 @@ class Cache_Lite {
   //
   function save ($data=null) {
 
-    if ($this->canSave) { $this->canSave = false; }
-    else                { return false; }
+    if (!$this->fp_out) return false;
 
     if (isset($data)) fwrite(
       $this->fp_out,
       $this->opt['automaticSerialization'] ? serialize($data) : $data
     );
+
+    // done with temp file
     fclose($this->fp_out);
+    unset($this->fp_out);
 
     $safe = $this->safe;
+    // publish new content
+    $safe->publish();
 
-    $safe->waitForWriting();
-    // file_put_contents($safe->file, $data);
-    rename($safe->temp_file, $safe->file);
-    $safe->doneWriting();
-
+    // release publisher lock
     return $safe->finish();
   }
 
@@ -42,14 +41,11 @@ class Cache_Lite {
       "work_dir" => $this->opt['cacheDir'] . "safe_resource_access",
     ));
 
-    // $safe = $this->safe;
     $safe->publisher = $safe->getExclusive();
-
     if ($safe->publisher) {
 
       if ( $safe->hasResourceExpired() ) {
         $this->fp_out = $safe->get_temp_fp();
-        $this->fp_out && $this->canSave = true;
         return false;
       }
       // do reading..
@@ -120,5 +116,16 @@ class Cache_Lite {
     }
 
 
-}
+    /**
+    * Return the cache last modification time
+    *
+    * BE CAREFUL : THIS METHOD IS FOR HACKING ONLY !
+    *
+    * @return int last modification time
+    */
+    function lastModified()
+    {
+        return @filemtime($this->safe->file);
+    }
 
+}

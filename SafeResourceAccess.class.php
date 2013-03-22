@@ -25,14 +25,15 @@ class SafeResourceAccess {
 
     $this->opt = $arg + array(
       "work_dir" => "/tmp/safe_resource_access",
+      "work_dir_perm" => 0755,
       "cacheTTL" => 3*60, // sec
-      "diffTTL" => 15,
+      "diffTTL"  => 15,
       "clearstatcache" => true,
     );
 
     $this->work_dir = $this->opt["work_dir"];
     // mkdir recursive
-    if (! is_dir($this->work_dir) ) mkdir($this->work_dir, 0755, true);
+    if (! is_dir($this->work_dir) ) mkdir($this->work_dir, $this->opt["work_dir_perm"], true);
 
   }
 
@@ -111,20 +112,15 @@ class SafeResourceAccess {
       if ( $this->hasResourceExpired() ) {
         // generate new content in $this->temp_file
         $this->newContent();
-
-        $this->waitForWriting();
-        rename($this->temp_file, $this->file);
-        $this->doneWriting();
+        // publish new content
+        $this->publish();
       }
       // do reading..
-      // else { }
-
       // $this->doneExclusive();
     }
     else {
       if ( $this->hasResourceExpired() ) $this->waitForRefresh();
       $this->waitForReading();
-
       // do reading..
       // $this->doneReading();
     }
@@ -141,17 +137,29 @@ class SafeResourceAccess {
     return $this->getWLock($block=0);
   }
 
+  // publish new content
+  function publish () {
+
+    // $this->waitForWriting();
+    $this->getRLock($exclusive=1);
+
+    rename($this->temp_file, $this->file);
+
+    // $this->doneWriting();
+    $this->doneReading();
+  }
+/*
   // acquire ex. Rlock
   function waitForWriting () {
 
     return $this->getRLock($exclusive=1);
   }
-
   // release ex. Rlock
   function doneWriting () {
 
     return $this->doneReading();
   }
+*/
   // release sh. Rlock
   function doneReading () {
 
