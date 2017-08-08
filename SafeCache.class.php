@@ -9,6 +9,9 @@ class SafeCache {
 
   private $_WLock;
   private $_RLock;
+  private $content_fp;
+  // persistent counter/etc.
+  private $seen = array();
 
   public $publisher;
   public $file; // string id
@@ -103,12 +106,15 @@ class SafeCache {
   }
 
   // get file handle
-  function getHandle () {
+  function getHandle ($force=false) {
 
-    $this->ready();
-    $ret = fopen($this->file, "r");
+    if (!$this->seen[__METHOD__]++) { $this->ready(); }
+
+    if (!$this->content_fp or $force) {
+      $this->content_fp = fopen($this->file, "r");
+    }
     // $this->finish();
-    return $ret;
+    return $this->content_fp;
   }
 
   //
