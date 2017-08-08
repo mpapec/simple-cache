@@ -102,6 +102,15 @@ class SafeCache {
     return $ret;
   }
 
+  // get file handle
+  function getHandle () {
+
+    $this->ready();
+    $ret = fopen($this->file, "r");
+    // $this->finish();
+    return $ret;
+  }
+
   //
   function ready () {
 
