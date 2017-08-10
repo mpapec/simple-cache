@@ -11,7 +11,8 @@ class SafeCache {
   private $_RLock;
   private $content_fp;
   // persistent counter/etc.
-  private $seen = array();
+  // private $seen = array();
+  private $isReadyToRead = false;
 
   public $publisher;
   public $file; // string id
@@ -62,19 +63,14 @@ class SafeCache {
 
     if (!$func) return false;
 
-    $fp = $this->get_temp_fp();
+    // $fp = $this->get_temp_fp();
+    $fp = fopen($this->temp_file, "wb");
     if (!$fp) return false;
 
     $content = $func($this, $fp);
     if (isset($content) and $content !== false) fwrite($fp, $content);
 
     return fclose($fp);
-  }
-
-  //
-  function get_temp_fp () {
-
-    return fopen($this->temp_file, "wb");
   }
 
   // print static content
@@ -108,7 +104,7 @@ class SafeCache {
   // get file handle
   function getHandle ($force=false) {
 
-    if (!$this->seen[__METHOD__]++) { $this->ready(); }
+    $this->ready();
 
     if (!$this->content_fp or $force) {
       $this->content_fp = fopen($this->file, "r");
@@ -119,6 +115,8 @@ class SafeCache {
 
   //
   function ready () {
+
+    if ($this->isReadyToRead) return;
 
     $this->publisher = $this->getExclusive();
 
@@ -139,10 +137,15 @@ class SafeCache {
       // do reading..
       // $this->doneReading();
     }
+
+    $this->isReadyToRead = true;
+
   }
 
   // manually release locks
   function finish () {
+    $this->isReadyToRead = false;
+    $this->content_fp = null;
     return $this->publisher ? $this->doneExclusive() : $this->doneReading();
   }
 
@@ -163,18 +166,7 @@ class SafeCache {
     // $this->doneWriting();
     $this->doneReading();
   }
-/*
-  // acquire ex. Rlock
-  function waitForWriting () {
 
-    return $this->getRLock($exclusive=1);
-  }
-  // release ex. Rlock
-  function doneWriting () {
-
-    return $this->doneReading();
-  }
-*/
   // release sh. Rlock
   function doneReading () {
 
