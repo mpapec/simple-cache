@@ -29,8 +29,8 @@ class SafeCache {
     $this->opt = $arg + array(
       "work_dir" => "/tmp/safe_resource_access",
       "work_dir_perm" => 0755,
-      "cacheTTL" => 3*60, // sec
-      "diffTTL"  => 15,
+      "cacheTTL" => 3*60, // sec; cache expiration for readers
+      "diffTTL"  => 15,   // sec; for publisher cache expires after cacheTTL-diffTTL
       "clearstatcache" => true,
     );
 
@@ -66,7 +66,7 @@ class SafeCache {
     if (!$fp) return false;
 
     $content = $func($this, $fp);
-    if (isset($content)) fwrite($fp, $content);
+    if (isset($content) and $content !== false) fwrite($fp, $content);
 
     return fclose($fp);
   }
